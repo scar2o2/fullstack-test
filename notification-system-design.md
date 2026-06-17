@@ -106,3 +106,26 @@ For this query, an index on notificationType and createdAt is useful.
 
 CREATE INDEX idx_notifications_type_created
 ON notifications(notificationType, createdAt);
+
+### Stage 4
+
+Fetching notifications from the database on every page load is expensive. I would use caching and real-time updates together.
+
+The frontend should first load notifications from cache or local state. The backend can cache unread count and recent notifications in Redis. When a new notification is created or marked as read, the cache should be updated or cleared.
+
+For real-time updates, WebSocket can send only new notifications to logged-in students. This avoids calling the notifications API again and again.
+
+**Improved Flow**
+
+1. Student opens the app.
+2. Frontend calls the API only once for the first page.
+3. Backend checks Redis cache first.
+4. If cache is empty, backend reads from DB and stores result in Redis.
+5. New notifications are sent through WebSocket.
+6. Mark as read updates DB and cache.
+
+This improves performance because the database gets fewer repeated reads. The user also sees updates faster.
+
+**Tradeoffs**
+
+Caching adds extra logic because cached data can become old. WebSocket also needs connection handling. Redis adds one more service to maintain. Still, this is better than hitting the database on every page load for every student.
