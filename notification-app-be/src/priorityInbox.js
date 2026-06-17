@@ -12,7 +12,6 @@ const addToTop = (top, notification, limit) => {
 
 const getPriorityNotifications = async (limit, token) => {
   const response = await fetch(API_URL, { headers: { Authorization: `Bearer ${token}` } });
-  if (!response.ok) throw new Error("Failed to fetch notifications");
   const data = await response.json();
   return (data.notifications ?? []).reduce((top, notification) => addToTop(top, notification, limit), []);
 };

@@ -1,4 +1,4 @@
-const LOG_URL = "http://4.224.186.213/evaluation-service/logs";
+const LOG_URL = "/evaluation-service/logs";
 const stacks = ["backend", "frontend"];
 const levels = ["debug", "info", "warn", "error", "fatal"];
 const packages = {

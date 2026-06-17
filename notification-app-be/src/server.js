@@ -1,7 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const { getPriorityNotifications } = require("./priorityInbox");
-
+const cors=require('cors')
 dotenv.config();
 
 const app = express();
@@ -9,7 +9,7 @@ const PORT = 3001;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 app.use(express.json());
-
+app.use(cors());
 app.get("/", (req, res) => res.json({ message: "Notification backend is running" }));
 
 app.get("/priority-notifications", async (req, res) => {
