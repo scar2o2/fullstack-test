@@ -164,3 +164,21 @@ function email_worker():
     retry_email_later(job.id)
 
 This approach is faster because the main request returns quickly. It is more reliable because failed emails can be retried without creating duplicate notifications.
+
+### Stage 6
+
+For the Priority Inbox, I used a score based on notification type and time. Placement gets the highest weight, Result gets the next weight, and Event gets the lowest weight. If two notifications have the same type, the latest one comes first.
+
+The backend code is in notification-app-be/src/server.js and notification-app-be/src/priorityInbox.js. It is a Node.js Express app. It calls the given Notification API, ranks the data, keeps only the top n notifications, and returns the top 10 by default.
+
+To keep the top 10 efficient when new notifications keep coming, I would not sort all notifications every time. I would insert only the new notification into the current top 10 list and remove the lowest ranked item if the list becomes bigger than 10.
+
+Run:
+
+npm start
+
+API:
+
+GET /priority-notifications?n=10
+
+Add the bearer token in notification-app-be/src/server.js.
