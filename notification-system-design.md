@@ -129,3 +129,38 @@ This improves performance because the database gets fewer repeated reads. The us
 **Tradeoffs**
 
 Caching adds extra logic because cached data can become old. WebSocket also needs connection handling. Redis adds one more service to maintain. Still, this is better than hitting the database on every page load for every student.
+
+### Stage 5
+
+The current notify_all logic is slow because it sends email, saves to DB, and pushes app notification one student at a time. If one email fails, the full loop can become slow or unreliable. For 50,000 students, this can overload the email API and database.
+
+Email and DB save should not fully depend on each other. The notification should first be saved in the database, then email and app push should be handled using background jobs. This makes the API faster and avoids blocking the HR screen.
+
+**Better Flow**
+
+1. HR clicks Notify All.
+2. Save one notification record.
+3. Create student notification records in batches.
+4. Add email jobs to a queue.
+5. Send app notifications through WebSocket.
+6. Retry failed email jobs later.
+
+**Revised Pseudocode**
+
+function notify_all(student_ids, message):
+  notification_id = save_notification(message)
+  for batch in chunks(student_ids, 1000):
+    save_user_notifications(batch, notification_id)
+    add_email_jobs(batch, notification_id)
+    push_to_app(batch, message)
+  return "Notification processing started"
+
+function email_worker():
+  job = get_next_email_job()
+  try:
+    send_email(job.student_id, job.message)
+    mark_email_sent(job.id)
+  except:
+    retry_email_later(job.id)
+
+This approach is faster because the main request returns quickly. It is more reliable because failed emails can be retried without creating duplicate notifications.
